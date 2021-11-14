@@ -55,7 +55,13 @@ def getTranscriptCourseDetail(db,zid):
   order by 
   (
   case
-    when t.code = 'x' then 0
+    when t.code like '\d\d__' then 0
+    else 1
+  end
+  ),
+  (
+  case
+    when t.code like '__x_' then 0
     else 1
   end
   ), t.code
@@ -81,9 +87,88 @@ def getUocAndWam(uoc_lst, def_uoc_lst, wam_lst):
 
     return[uoc_sum, sum(wam_sum), def_uoc_sum, wam_average]
 
-# my_seq = ['1', '2', '3', '4', '5', '6', '7', '8', '9', 'x', 's']
-# def custom_key(word):
-#   nums = []
-#   for letter in word:
-#     nums.append(my_seq.index(letter))
-#   return nums
+def getOrgunits(db,pg_id):
+  cur = db.cursor()
+  qry = """
+  select o.longname
+  from   Programs p
+         join Orgunits o on p.offeredby = o.id
+  where  p.id = %s
+  """
+  cur.execute(qry,[pg_id])
+  info = cur.fetchone()
+  cur.close()
+  if not info:
+    return None
+  else:
+    return info
+
+def getProgramDetails(db,pg_id):
+  cur = db.cursor()
+  qry = """
+  select aog.name, aog.definition, r.name, r.min_req
+  from programs p
+          join program_rules pr on p.id = pr.program
+          join rules r on pr.rule = r.id
+          join academic_object_groups aog on aog.id = r.ao_group
+  where p.id = %s
+  """
+  cur.execute(qry,[pg_id])
+  info = cur.fetchall()
+
+  cur.close()
+  if not info:
+    return None
+  else:
+    return info
+
+def getDegreeName(db, stream_code):
+  cur = db.cursor()
+  qry = """
+  select s.name
+  from streams s
+  where s.code = %s
+  """
+  cur.execute(qry,[stream_code])
+  info = cur.fetchone()
+
+  cur.close()
+  if not info:
+    return None
+  else:
+    return info
+
+def getCourseName(db, course_code):
+  cur = db.cursor()
+  qry = """
+  select s.name
+  from subjects s
+  where s.code = %s
+  """
+  cur.execute(qry,[course_code])
+  info = cur.fetchone()
+
+  cur.close()
+  if not info:
+    return None
+  else:
+    return info
+
+def getType(db, pg_id):
+  cur = db.cursor()
+  qry = """
+  select aog.type
+  from programs p
+          join program_rules pr on p.id = pr.program
+          join rules r on pr.rule = r.id
+          join academic_object_groups aog on aog.id = r.ao_group
+  where p.id = %s
+  """
+  cur.execute(qry,[pg_id])
+  info = cur.fetchone()
+
+  cur.close()
+  if not info:
+    return None
+  else:
+    return info

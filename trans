@@ -72,7 +72,7 @@ try:
         print(f"{course_code} {term} {subject_title:<32s}{'-':>3} {grade:>2s}  fail")
         wam_lst.append(0)
     elif grade in ['AS', 'AW', 'NA', 'PW', 'RD', 'NF', 'LE', 'PE', 'WD', 'WJ']:
-      pass
+        print(f"{course_code} {term} {subject_title:<32s}{'-':>3} {grade:>2s}  unrs")
     else:
       pass
 

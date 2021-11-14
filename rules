@@ -4,7 +4,7 @@
 import sys
 import psycopg2
 import re
-from helpers import getProgram, getStream
+from helpers import getDegreeName, getOrgunits, getProgram, getProgramDetails, getStream, getCourseName, getType
 
 # define any local helper functions here
 # ...
@@ -33,17 +33,57 @@ try:
     if not progInfo:
       print(f"Invalid program code {code}")
       exit()
-    #print(progInfo)  #debug
+    # print(progInfo)  #debug
     # List the rules for Program
-
     # ... add your code here ...
+    # print(progInfo)
+
+    print(f"{progInfo[0]} {progInfo[2]}, {progInfo[3]} UOC, {progInfo[3]/48} years")
+    faculty = getOrgunits(db, progInfo[0])
+    # print(getOrgunits(db, progInfo[0]))
+    print(f"- offered by {faculty[0]}")
+    print("Academic Requirements:")
+    pg_detail = getProgramDetails(db, progInfo[0])
+    # print(pg_detail)
+    stream_num = pg_detail[0][-1]
+    print(f"{stream_num} stream(s) from {pg_detail[0][0]}")
+    stream_list = pg_detail[0][1].split(",")
+    for stream in stream_list:
+      degree = getDegreeName(db, stream)
+      if degree:
+        print(f"- {stream} {degree[0]}")
+      else:
+        print(f"- {stream} ???")
+
+    if pg_detail[-2][0] == 'Industrial Training':
+      print(pg_detail[-2][0])
+      print(f"- {pg_detail[-2][1]} {pg_detail[-2][2]}")
+
+    if(len(pg_detail[1:-1])) > 1:
+      for i in range(1, len(pg_detail[1:])):
+        print(f"all courses from {pg_detail[i][0]}")
+        course_list = pg_detail[i][1].split(",")
+        for course_code in course_list:
+          course_name = getCourseName(db, course_code)
+          if course_name:
+            print(f"- {course_code} {course_name[0]}")
+          else:
+            m = re.findall('[a-zA-Z1-9]+', course_code)
+            course_1, course_2 = m
+            course_name_1 = getCourseName(db, course_1)
+            course_name_2 = getCourseName(db, course_2)
+            print(f"- {course_1} {course_name_1[0]}")
+            print(f"  or {course_2} {course_name_2[0]}")
+
+    print(f"{pg_detail[-1][3]} UOC of {pg_detail[-1][0]}")
+
 
   elif codeOf == "stream":
     strmInfo = getStream(db,code)
     if not strmInfo:
       print(f"Invalid stream code {code}")
       exit()
-    #print(strmInfo)  #debug
+    print(strmInfo)  #debug
     # List the rules for Stream
     # ... add your code here ...
 
