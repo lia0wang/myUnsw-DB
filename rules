@@ -4,7 +4,7 @@
 import sys
 import psycopg2
 import re
-from helpers import getDegreeName, getOrgunits, getProgram, getProgramDetails, getStream, getCourseName, getType
+from helpers import getAogDefby, getDegreeName, getOrgunitsProgram, getOrgunitsStream, getProgram, getProgramDetails, getProgramRulesType, getRulesType, getStream, getCourseName, getStreamDetails, getStreamRulesType, minOrMax, minOrMaxFree
 
 # define any local helper functions here
 # ...
@@ -38,54 +38,204 @@ try:
     # ... add your code here ...
     # print(progInfo)
 
+    # First 3 lines
     print(f"{progInfo[0]} {progInfo[2]}, {progInfo[3]} UOC, {progInfo[3]/48} years")
-    faculty = getOrgunits(db, progInfo[0])
-    # print(getOrgunits(db, progInfo[0]))
+    faculty = getOrgunitsProgram(db, progInfo[0])
     print(f"- offered by {faculty[0]}")
     print("Academic Requirements:")
+
     pg_detail = getProgramDetails(db, progInfo[0])
-    # print(pg_detail)
-    stream_num = pg_detail[0][-1]
-    print(f"{stream_num} stream(s) from {pg_detail[0][0]}")
-    stream_list = pg_detail[0][1].split(",")
-    for stream in stream_list:
-      degree = getDegreeName(db, stream)
-      if degree:
-        print(f"- {stream} {degree[0]}")
-      else:
-        print(f"- {stream} ???")
-
-    if pg_detail[-2][0] == 'Industrial Training':
-      print(pg_detail[-2][0])
-      print(f"- {pg_detail[-2][1]} {pg_detail[-2][2]}")
-
-    if(len(pg_detail[1:-1])) > 1:
-      for i in range(1, len(pg_detail[1:])):
-        print(f"all courses from {pg_detail[i][0]}")
-        course_list = pg_detail[i][1].split(",")
-        for course_code in course_list:
-          course_name = getCourseName(db, course_code)
-          if course_name:
-            print(f"- {course_code} {course_name[0]}")
+    print(pg_detail)
+    for i in range(len(pg_detail)):
+      name = pg_detail[i][0]
+      code = getRulesType(db, name)[0]
+      # '''
+      # DS 
+      # AO Group       - enumerated list of stream codes 
+      #               - # streams to complete
+      # '''
+      if code == 'DS':
+        # Comp Sci Majors
+        stream_num = pg_detail[i][-1]
+        print(f"{stream_num} stream(s) from {pg_detail[i][0]}")
+        stream_list = pg_detail[i][1].split(",")
+        for stream in stream_list:
+          degree = getDegreeName(db, stream)
+          if degree:
+            print(f"- {stream} {degree[0]}")
           else:
-            m = re.findall('[a-zA-Z1-9]+', course_code)
-            course_1, course_2 = m
-            course_name_1 = getCourseName(db, course_1)
-            course_name_2 = getCourseName(db, course_2)
-            print(f"- {course_1} {course_name_1[0]}")
-            print(f"  or {course_2} {course_name_2[0]}")
+            print(f"- {stream} ???")
+      
+      # '''
+      # CC 
+      # AO Group       - list of course codes (no patterns)
+      # Min/Max        - not needed
+      # '''
+      elif code == 'CC':
+        # Foundational Computing
+        # Industry Training
+        course_list = pg_detail[i][1].split(",")
+        if len(course_list) == 1:
+          print(pg_detail[i][0])
+          print(f"- {pg_detail[i][1]} {pg_detail[i][2]}")
+        elif len(pg_detail[i][1]) > 1:
+          print(f"all courses from {pg_detail[i][0]}")
+          for course_code in course_list:
+            course_name = getCourseName(db, course_code)
+            if course_name:
+              print(f"- {course_code} {course_name[0]}")
+            else:
+              m = re.findall('[a-zA-Z1-9]+', course_code)
+              course_1, course_2 = m
+              course_name_1 = getCourseName(db, course_1)
+              course_name_2 = getCourseName(db, course_2)
+              print(f"- {course_1} {course_name_1[0]}")
+              print(f"  or {course_2} {course_name_2[0]}")
 
-    print(f"{pg_detail[-1][3]} UOC of {pg_detail[-1][0]}")
+      # '''
+      # GE
+      # AO Group       - any course like GEN##### **
+      # Min/Max        - typically min = max = 12
+      # '''    
+      elif code == 'GE':
+        # General Education
+        print(f"{pg_detail[i][-1]} UOC of {pg_detail[i][0]}")
 
+
+    '''
+    WM
+    AO Group       - requires minimum WAM; typically used as a pre-req; not used in this assignment
+    Min/Max        - min is minimum WAM
+    '''
+    '''
+    RQ, LR, MR 
+    AO Group       - not used in this assignment
+    Min/Max        - -
+    '''
 
   elif codeOf == "stream":
     strmInfo = getStream(db,code)
     if not strmInfo:
       print(f"Invalid stream code {code}")
       exit()
-    print(strmInfo)  #debug
+    #debug
     # List the rules for Stream
     # ... add your code here ...
+    # print(strmInfo)
+    # print(getOrgunitsStream(db, strmInfo[0]))
+
+    '''
+    DS 
+    AO Group       - enumerated list of stream codes 
+                   - # streams to complete
+    '''
+    '''
+    CC 
+    AO Group       - list of course codes (no patterns)
+    Min/Max        - not needed
+    '''
+    '''
+    PE
+    AO Group       - list of courses (enumerated or patterns)
+    Min/Max        - must complete UOC between min and max;
+                     (max = null) means "at least min UOC";
+                     min = null) means "up to max UOC"; cannot both be null
+    '''
+    '''
+    FE
+    AO Group       - don't need an AO group, but could have one with FREE#### as the pattern
+    Min/Max        - as for PE
+    '''
+    '''
+    GE
+    AO Group       - any course like GEN##### **
+    Min/Max        - typically min = max = 12
+    '''
+    '''
+    WM
+    AO Group       - requires minimum WAM; typically used as a pre-req; not used in this assignment
+    Min/Max        - min is minimum WAM
+    '''
+    '''
+    RQ, LR, MR 
+    AO Group       - not used in this assignment
+    Min/Max        - -
+    '''
+    # First 3 lines
+    print(f"{strmInfo[1]} {strmInfo[2]}")
+    faculty = getOrgunitsStream(db, strmInfo[0])
+    print(f"- offered by {faculty[0]}")
+    print("Academic Requirements:")
+
+    strm_detail = getStreamDetails(db, strmInfo[0])
+    for i in range(len(strm_detail)):
+      name = strm_detail[i][0]
+      code = getRulesType(db, name)[0]
+      gdefby = getAogDefby(db, name)[0]
+      # print(code)
+      # '''
+      # CC 
+      # AO Group       - list of course codes (no patterns)
+      # Min/Max        - not needed
+      # '''
+      if code == 'CC':
+        course_list = strm_detail[i][1].split(",")
+        if len(course_list) == 1 and re.match('\{.*\;.*\}', strm_detail[i][1]):
+          print(strm_detail[i][0])
+          for course_code in course_list:
+            course_name = getCourseName(db, course_code)
+            if course_name:
+              print(f"- {course_code} {course_name[0]}")
+            else:
+              m = re.findall('[a-zA-Z1-9]+', course_code)
+              course_1, course_2 = m
+              course_name_1 = getCourseName(db, course_1)
+              course_name_2 = getCourseName(db, course_2)
+              print(f"- {course_1} {course_name_1[0]}")
+              print(f"  or {course_2} {course_name_2[0]}")
+        elif len(strm_detail[i][1]) > 1:
+          print(f"all courses from {strm_detail[i][0]}")
+          for course_code in course_list:
+            course_name = getCourseName(db, course_code)
+            if course_name:
+              print(f"- {course_code} {course_name[0]}")
+            else:
+              m = re.findall('[a-zA-Z1-9]+', course_code)
+              course_1, course_2 = m
+              course_name_1 = getCourseName(db, course_1)
+              course_name_2 = getCourseName(db, course_2)
+              print(f"- {course_1} {course_name_1[0]}")
+              print(f"  or {course_2} {course_name_2[0]}")
+      
+      # '''
+      # PE
+      # AO Group       - list of courses (enumerated or patterns)
+      # Min/Max        - must complete UOC between min and max;
+      #                 (max = null) means "at least min UOC";
+      #                 min = null) means "up to max UOC"; cannot both be null
+      # '''
+      if code == 'PE' and gdefby == 'enumerated':
+        minOrMax(strm_detail[i][-2], strm_detail[i][-1], strm_detail[i][0])
+
+        stream_list = strm_detail[i][1].split(",")
+        for stream in stream_list:
+          course = getCourseName(db, stream)
+          if course:
+            print(f"- {stream} {course[0]}")
+          else:
+            print(f"- {stream} ???")
+
+      elif code == 'PE' and gdefby == 'pattern':
+        minOrMax(strm_detail[i][-2], strm_detail[i][-1], strm_detail[i][0])
+        print(f"- courses matching {strm_detail[i][1]}")
+
+      # '''
+      # FE
+      # AO Group       - don't need an AO group, but could have one with FREE#### as the pattern
+      # Min/Max        - as for PE
+      # '''
+      if code == 'FE':
+        minOrMaxFree(strm_detail[i][-2], strm_detail[i][-1], 'Free Electives')
 
 except Exception as err:
   print(err)
