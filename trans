@@ -1,4 +1,4 @@
-#!/usr/bin/python3
+#!/Library/Frameworks/Python.framework/Versions/3.9/bin/python3
 # COMP3311 21T3 Ass2 ... print a transcript for a given student
 
 import sys
@@ -66,19 +66,19 @@ try:
     elif grade in ['AF', 'FL', 'UF', 'E', 'F']:
       def_uoc_lst.append(uoc)
       if grade == 'FL':
-        print(f"{course_code} {term} {subject_title:<32s}{wam:>3} {grade:>2s}  fail")
+        print(f"{course_code} {term} {subject_title:<32s}{wam:>3} {grade:>2s}   fail")
         wam_lst.append(wam)
       else:
-        print(f"{course_code} {term} {subject_title:<32s}{'-':>3} {grade:>2s}  fail")
+        print(f"{course_code} {term} {subject_title:<32s}{'-':>3} {grade:>2s}   fail")
         wam_lst.append(0)
     elif grade in ['AS', 'AW', 'NA', 'PW', 'RD', 'NF', 'LE', 'PE', 'WD', 'WJ']:
-        print(f"{course_code} {term} {subject_title:<32s}{'-':>3} {grade:>2s}  unrs")
+        print(f"{course_code} {term} {subject_title:<32s}{'-':>3} {grade:>2s}   unrs")
     else:
       pass
 
   uoc_sum, wam_sum, def_uoc_sum, wam_average= getUocAndWam(uoc_lst, def_uoc_lst, wam_lst)
 
-  print(f"UOC = {uoc_sum}, WAM = {wam_sum}/{def_uoc_sum} = {wam_average}")
+  print(f"UOC = {uoc_sum}, WAM = {wam_average}")
 
 except Exception as err:
   print("DB error: ", err)

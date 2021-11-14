@@ -1,4 +1,4 @@
-#!/usr/bin/python3
+#!/Library/Frameworks/Python.framework/Versions/3.9/bin/python3
 # COMP3311 21T3 Ass2 ... print list of rules for a program or stream
 
 import sys
@@ -45,7 +45,6 @@ try:
     print("Academic Requirements:")
 
     pg_detail = getProgramDetails(db, progInfo[0])
-    print(pg_detail)
     for i in range(len(pg_detail)):
       name = pg_detail[i][0]
       code = getRulesType(db, name)[0]
