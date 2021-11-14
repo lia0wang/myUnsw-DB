@@ -2,9 +2,10 @@
 # COMP3311 21T3 Ass2 ... print a transcript for a given student
 
 import sys
+from typing import Coroutine
 import psycopg2
 import re
-from helpers import getStudent
+from helpers import getStudent, getTranscriptCourseDetail, getUocAndWam
 
 # define any local helper functions here
 
@@ -39,6 +40,45 @@ try:
   #print(stuInfo) # debug
   # Print transcript for Student
   # ... add your code here ...
+  stuTranscript = getTranscriptCourseDetail(db,zid)
+  print(f"{stuInfo[0]} {stuInfo[1]}, {stuInfo[2]}")
+
+  def_uoc_lst = []
+  uoc_lst = []
+  wam_lst = []
+
+  for course in stuTranscript:
+    course_code = course[0]
+    term = course[1]
+    subject_title = course[2]
+    wam = course[3]
+    grade = course[4]
+    uoc = course[5]
+
+    if grade in ['HD', 'DN', 'CR', 'PS']:
+      uoc_lst.append(uoc)
+      def_uoc_lst.append(uoc)
+      wam_lst.append(wam)
+      print(f"{course_code} {term} {subject_title:<32s}{wam:>3} {grade:>2s}  {uoc:2d}uoc")
+    elif grade in ['A', 'B', 'C', 'D', 'XE', 'T', 'SY', 'EC', 'RC', 'NC']:
+      uoc_lst.append(uoc)
+      print(f"{course_code} {term} {subject_title:<32s}{'-':>3} {grade:>2s}  {uoc:2d}uoc")
+    elif grade in ['AF', 'FL', 'UF', 'E', 'F']:
+      def_uoc_lst.append(uoc)
+      if grade == 'FL':
+        print(f"{course_code} {term} {subject_title:<32s}{wam:>3} {grade:>2s}  fail")
+        wam_lst.append(wam)
+      else:
+        print(f"{course_code} {term} {subject_title:<32s}{'-':>3} {grade:>2s}  fail")
+        wam_lst.append(0)
+    elif grade in ['AS', 'AW', 'NA', 'PW', 'RD', 'NF', 'LE', 'PE', 'WD', 'WJ']:
+      pass
+    else:
+      pass
+
+  uoc_sum, wam_sum, def_uoc_sum, wam_average= getUocAndWam(uoc_lst, def_uoc_lst, wam_lst)
+
+  print(f"UOC = {uoc_sum}, WAM = {wam_sum}/{def_uoc_sum} = {wam_average}")
 
 except Exception as err:
   print("DB error: ", err)
