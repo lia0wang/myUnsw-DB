@@ -1,0 +1,35 @@
+5197273 Wilson-Rogers, Darien
+  3707 Bachelor of Engineering (Hons)
+  COMPBH Computer Engineering
+
+Completed:
+COMP1511 19T1 Programming Fundamentals         84 DN   6uoc towards Foundational Computing
+ENGG1000 19T1 Engineering Design               69 CR   6uoc towards COMPBH Design
+MATH1131 19T1 Mathematics 1A                   84 DN   6uoc towards COMPBH Maths
+COMP1521 19T2 Computer Systems Fundamentals    88 HD   6uoc towards Foundational Computing
+MATH1231 19T2 Mathematics 1B                   54 PS   6uoc towards COMPBH Maths
+PHYS1121 19T2 Physics 1A                       85 HD   6uoc towards COMPBH Physics and Electronics
+COMP1531 19T3 Software Eng Fundamentals        52 PS   6uoc towards Foundational Computing
+ELEC1111 19T3 Elec & Telecomm Eng              64 PS   6uoc towards COMPBH Physics and Electronics
+COMP2521 20T1 Data Structures and Algorithms    - SY   6uoc towards Foundational Computing
+COMP3121 20T2 Algorithms & Programming Tech   100 HD   6uoc towards COMPBH Computing Electives
+COMP3231 20T2 Operating Systems                71 CR   6uoc towards COMPBH Advanced Core
+COMP2511 20T3 O-O Design & Programming         94 HD   6uoc towards Foundational Computing
+COMP3222 20T3 Digital Circuits and Systems     83 DN   6uoc towards COMPBH Advanced Core
+UOC = 78 so far
+
+Remaining to complete degree:
+['COMP1511', 'ENGG1000', 'MATH1131', 'COMP1521', 'MATH1231', 'PHYS1121', 'COMP1531', 'ELEC1111', 'COMP2521', 'COMP3121', 'COMP3231', 'COMP2511', 'COMP3222']
+- MATH1131 Mathematics 1A
+  or MATH1141 Higher Mathematics 1A
+- MATH1231 Mathematics 1B
+  or MATH1241 Higher Mathematics 1B
+- MATH2069 Mathematics 2A
+- MATH2099 Mathematics 2B
+- PHYS1121 Physics 1A
+  or PHYS1131 Higher Physics 1A
+- PHYS1221 Physics 1B
+  or PHYS1231 Higher Physics 1B
+- ELEC2133 Analogue Electronics
+- ELEC2134 Circuits and Signals
+DB error:  'NoneType' object is not subscriptable

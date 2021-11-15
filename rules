@@ -50,6 +50,7 @@ try:
     for i in range(len(pg_detail)):
       name = pg_detail[i][0]
       code = getRulesType(db, name)[0]
+      gdefby = getAogDefby(db, name)[0]
       # '''
       # DS 
       # AO Group       - enumerated list of stream codes 
@@ -94,6 +95,36 @@ try:
               print(f"  or {course_2} {course_name_2[0]}")
 
       # '''
+      # PE
+      # AO Group       - list of courses (enumerated or patterns)
+      # Min/Max        - must complete UOC between min and max;
+      #                 (max = null) means "at least min UOC";
+      #                 min = null) means "up to max UOC"; cannot both be null
+      # '''
+      if code == 'PE' and gdefby == 'enumerated':
+        minOrMax(pg_detail[i][-2], pg_detail[i][-1], pg_detail[i][0])
+
+        stream_list = pg_detail[i][1].split(",")
+        for stream in stream_list:
+          course = getCourseName(db, stream)
+          if course:
+            print(f"- {stream} {course[0]}")
+          else:
+            print(f"- {stream} ???")
+
+      elif code == 'PE' and gdefby == 'pattern':
+        minOrMax(pg_detail[i][-2], pg_detail[i][-1], pg_detail[i][0])
+        print(f"- courses matching {pg_detail[i][1]}")
+
+      # '''
+      # FE
+      # AO Group       - don't need an AO group, but could have one with FREE#### as the pattern
+      # Min/Max        - as for PE
+      # '''
+      if code == 'FE':
+        minOrMaxFree(pg_detail[i][-2], pg_detail[i][-1], 'Free Electives')
+
+      # '''
       # GE
       # AO Group       - any course like GEN##### **
       # Min/Max        - typically min = max = 12
@@ -125,6 +156,24 @@ try:
       name = strm_detail[i][0]
       code = getRulesType(db, name)[0]
       gdefby = getAogDefby(db, name)[0]
+
+      # '''
+      # DS 
+      # AO Group       - enumerated list of stream codes 
+      #               - # streams to complete
+      # '''
+      if code == 'DS':
+        # Comp Sci Majors
+        stream_num = strm_detail[i][-1]
+        print(f"{stream_num} stream(s) from {strm_detail[i][0]}")
+        stream_list = strm_detail[i][1].split(",")
+        for stream in stream_list:
+          degree = getDegreeName(db, stream)
+          if degree:
+            print(f"- {stream} {degree[0]}")
+          else:
+            print(f"- {stream} ???")
+      
       # print(code)
       # '''
       # CC 
@@ -189,6 +238,15 @@ try:
       # '''
       if code == 'FE':
         minOrMaxFree(strm_detail[i][-2], strm_detail[i][-1], 'Free Electives')
+
+      # '''
+      # GE
+      # AO Group       - any course like GEN##### **
+      # Min/Max        - typically min = max = 12
+      # '''    
+      elif code == 'GE':
+        # General Education
+        print(f"{strm_detail[i][-1]} UOC of {strm_detail[i][0]}")
 
 except Exception as err:
   print(err)

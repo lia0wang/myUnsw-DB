@@ -2,9 +2,10 @@
 # COMP3311 21T3 Ass2 ... progression check for a given student
 
 import sys
+from typing import KeysView
 import psycopg2
 import re
-from helpers import getStudent, getProgram, getStream
+from helpers import checkEqual, getAogDefby, getCourseName,  getLen, getProgramByZID, getProgramDetails, getRules, getRulesType, getStreamByZID, getStreamDetails, getStudent, getProgram, getStream, getTranscriptCourseDetail, getUocAndWam
 
 # define any local helper functions here
 
@@ -13,7 +14,7 @@ from helpers import getStudent, getProgram, getStream
 usage = f"Usage: {sys.argv[0]} zID [Program Stream]"
 db = None
 
-### process command-line args
+# def orBracketIn()
 
 argc = len(sys.argv)
 if argc < 2:
@@ -64,6 +65,188 @@ try:
   #   show progression check on most recent program/stream enrolment
   # ... add your code here ...
 
+  # First 3 lines
+  stuTrans = getTranscriptCourseDetail(db, zid)
+  print(f"{stuInfo[0]} {stuInfo[1]}, {stuInfo[2]}")
+
+  if not progCode and not strmCode:
+    progInfo = getProgramByZID(db,zid)
+    strmInfo = getStreamByZID(db, zid)
+  else:
+    progInfo = getProgram(db, progCode)
+    strmInfo = getStream(db, strmCode)
+
+  print(f"  {progInfo[1]} {progInfo[2]}")
+  print(f"  {strmInfo[1]} {strmInfo[2]}")
+
+  print()
+
+  # Completed
+  pg_detail = getProgramDetails(db, progInfo[0])
+  strm_detail = getStreamDetails(db, strmInfo[0])
+
+  print("Completed:")
+
+
+  def_uoc_lst = []
+  uoc_lst = []
+  wam_lst = []
+  lst = pg_detail + strm_detail
+  rules = getRules(db)
+  rules_lst = [item for t in rules for item in t]
+
+  completed_course_lst = []
+  for course in stuTrans:
+    course_code = course[0]
+    term = course[1]
+    subject_title = course[2]
+    wam = course[3]
+    grade = course[4]
+    uoc = course[5]
+
+    for i in range(len(lst)):
+      if course[0] in lst[i][1]:
+        haha = lst[i][0]
+
+    for i in range(len(lst)):
+      if course[0] in lst[i][1] or checkEqual(lst[i][1],course[0]):
+        toward = lst[i][0]
+        if toward == 'ADK Courses':
+          toward = f'{haha} + {toward}'
+        break
+      elif re.match('GEN*',course[0]):
+        toward = 'General Education'
+        break
+      else:
+        toward = 'Free Electives'
+
+        # if toward not in rules_lst:
+        #   toward = 'does not satisfy any rule'
+        #   uoc = 0
+
+    if grade in ['HD', 'DN', 'CR', 'PS']:
+      uoc_lst.append(uoc)
+      def_uoc_lst.append(uoc)
+      wam_lst.append(wam)
+      print(f"{course_code} {term} {subject_title:<32s}{wam:>3} {grade:>2s}  {uoc:2d}uoc towards {toward}")
+
+    elif grade in ['A', 'B', 'C', 'D', 'XE', 'T', 'SY', 'EC', 'RC', 'NC']:
+      uoc_lst.append(uoc)
+      print(f"{course_code} {term} {subject_title:<32s}{'-':>3} {grade:>2s}  {uoc:2d}uoc towards {toward}")
+
+    elif grade in ['AF', 'FL', 'UF', 'E', 'F']:
+      def_uoc_lst.append(uoc)
+      if grade == 'FL':
+        print(f"{course_code} {term} {subject_title:<32s}{wam:>3} {grade:>2s}   fail does not count")
+        wam_lst.append(wam)
+
+      else:
+        print(f"{course_code} {term} {subject_title:<32s}{'-':>3} {grade:>2s}   fail does not count")
+        wam_lst.append(0)
+
+    elif grade in ['AS', 'AW', 'NA', 'PW', 'RD', 'NF', 'LE', 'PE', 'WD', 'WJ']:
+        print(f"{course_code} {term} {subject_title:<32s}{'-':>3} {grade:>2s}   unrs")
+
+    else:
+      pass
+    completed_course_lst.append(course_code)
+
+  uoc_sum, wam_sum, def_uoc_sum, wam_average= getUocAndWam(uoc_lst, def_uoc_lst, wam_lst)
+
+  print(f"UOC = {uoc_sum} so far")
+
+  print()
+
+  # Remaining to be completed
+  # ‘CC’ of stream
+  # ‘CC’ of program
+  # 'PE’ of stream
+  # ‘PE’ of program
+  # ‘GE’ of stream
+  # ‘GE’ of program
+  # ‘FE’ of stream
+  # ‘FE’ of program
+  print("Remaining to complete degree:")
+
+#   print(completed_course_lst)
+
+#   for i in range(len(strm_detail)):
+#     name = strm_detail[i][0]
+#     code = getRulesType(db, name)[0]
+#     gdefby = getAogDefby(db, name)[0] 
+#     if code == 'CC':
+#       course_list = (strm_detail[i][1]).split(",")
+#  # print("course_list", course_list)
+#       remain_course_lst = [item for item in course_list if item not in completed_course_lst]
+#     #  print(remain_course_lst)
+#       if len(course_list) == 1 and re.match('\{.*\;.*\}', strm_detail[i][1]):
+#      #   print(strm_detail[i][0])
+#         for course_code in course_list:
+#           orYes = False
+#           print(course_code)
+#           if course_code[0] == "{":
+#             two_courses = course_code.split(";")
+#             first_course = two_courses[0][1:]
+#             second_course = two_courses[1][:-1]
+#             print(first_course, second_course)
+
+#             orYes = first_course in completed_course_lst  or second_course in completed_course_lst
+#           if course_code not in completed_course_lst and not orYes:
+#             course_name = getCourseName(db, course_code)
+#             if course_name:
+#               print(f"- {course_code} {course_name[0]}")
+#             else:
+#               m = re.findall('[a-zA-Z1-9]+', course_code)
+#               course_1, course_2 = m
+#               course_name_1 = getCourseName(db, course_1)
+#               course_name_2 = getCourseName(db, course_2)
+#               print(f"- {course_1} {course_name_1[0]}")
+#               print(f"  or {course_2} {course_name_2[0]}")
+
+#       elif len(strm_detail[i][1]) > 1:
+#         for course_code in course_list:
+#           if course_code not in completed_course_lst:
+#             course_name = getCourseName(db, course_code)
+#             if course_name:
+#               print(f"- {course_code} {course_name[0]}")
+#             else:
+#               m = re.findall('[a-zA-Z1-9]+', course_code)
+#               course_1, course_2 = m
+#               course_name_1 = getCourseName(db, course_1)
+#               course_name_2 = getCourseName(db, course_2)
+#               print(f"- {course_1} {course_name_1[0]}")
+#               print(f"  or {course_2} {course_name_2[0]}")
+
+#   for i in range(len(pg_detail)):
+#     name = pg_detail[i][0]
+#     code = getRulesType(db, name)[0]
+#     gdefby = getAogDefby(db, name)[0]
+
+#     if code == 'CC':
+#       # Foundational Computing
+#       # Industry Training
+#       course_list = pg_detail[i][1].split(",")
+#       if len(course_list) == 1:
+#         print(pg_detail[i][0])
+#         print(f"- {pg_detail[i][1]} {pg_detail[i][2]}")
+#       elif len(pg_detail[i][1]) > 1:
+#         for course_code in course_list:
+#           if course_code not in completed_course_lst:
+#             course_name = getCourseName(db, course_code)
+#             if course_name:
+#               print(f"- {course_code} {course_name[0]}")
+#             else:
+#               m = re.findall('[a-zA-Z1-9]+', course_code)
+#               course_1, course_2 = m
+#               course_name_1 = getCourseName(db, course_1)
+#               course_name_2 = getCourseName(db, course_2)
+#               print(f"- {course_1} {course_name_1[0]}")
+#               print(f"  or {course_2} {course_name_2[0]}")
+
+  # CC stream then program
+  # PE stream then program
+  # GE
+  # FE
 except Exception as err:
   print("DB error: ", err)
 finally:

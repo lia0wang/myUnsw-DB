@@ -3,6 +3,7 @@
 # you must submit this even if you add nothing
 
 from re import UNICODE, subn
+from typing_extensions import runtime
 
 
 def getProgram(db,code):
@@ -55,12 +56,6 @@ def getTranscriptCourseDetail(db,zid):
   order by 
   (
   case
-    when t.code like '\d\d__' then 0
-    else 1
-  end
-  ),
-  (
-  case
     when t.code like '__x_' then 0
     else 1
   end
@@ -82,8 +77,11 @@ def getUocAndWam(uoc_lst, def_uoc_lst, wam_lst):
     def_uoc_sum = sum(def_uoc_lst)
 
     wam_sum = [a * b for a, b in zip(wam_lst, def_uoc_lst)]
-
-    wam_average = round(sum(wam_sum) / def_uoc_sum, 1)
+    
+    if def_uoc_sum == 0:
+      wam_average = 0
+    else:
+      wam_average = round(sum(wam_sum) / def_uoc_sum, 1)
 
     return[uoc_sum, sum(wam_sum), def_uoc_sum, wam_average]
 
@@ -122,7 +120,7 @@ def getOrgunitsStream(db,st_id):
 def getProgramDetails(db,pg_id):
   cur = db.cursor()
   qry = """
-  select aog.name, aog.definition, r.name, r.min_req
+  select aog.name, aog.definition, r.name, r.min_req, r.max_req
   from programs p
           join program_rules pr on p.id = pr.program
           join rules r on pr.rule = r.id
@@ -325,3 +323,81 @@ def minOrMaxFree(min, max, course):
     # both are not null and min = max ... "min"
     elif min and max and min == max:
       print(f"{min} UOC of {course}")
+
+def getAogType(db, name):
+  cur = db.cursor()
+  qry = """
+  select a.type
+  from academic_object_groups a
+  where a.name = %s
+  """
+  cur.execute(qry,[name])
+  info = cur.fetchone()
+
+  cur.close()
+  if not info:
+    return None
+  else:
+    return info
+
+def getLen(a, b):
+  if a > b:
+    return a
+  return b
+
+def getProgramByZID(db,z_id):
+  cur = db.cursor()
+  cur.execute(
+  """
+  select * from Programs p
+  join program_enrolments pe on p.id = pe.program
+  join students s on  pe.student = s.id
+  where s.id = %s
+  """,[z_id])
+  info = cur.fetchone()
+  cur.close()
+  if not info:
+    return None
+  else:
+    return info
+
+def getStreamByZID(db,z_id):
+  cur = db.cursor()
+  cur.execute(
+  """
+  select * from Streams st
+  join stream_enrolments se on st.id = se.stream
+  join program_enrolments pe on se.partof = pe.id
+  join students s on  pe.student = s.id
+  where s.id = %s
+  """
+  ,[z_id])
+  info = cur.fetchone()
+  cur.close()
+  if not info:
+    return None
+  else:
+    return info
+
+def checkHashing(subset, course_code):
+  assert len(subset) == len(course_code)
+  for i in range(len(subset)):
+    if subset[i] != "#" and subset[i] != course_code[i]:
+      return False
+  return True
+
+def checkEqual(pattern, course_code):
+  for i in range(len(pattern) - 7):
+    if checkHashing(pattern[i:i+8], course_code):
+      return True
+  return False
+
+def getRules(db):
+  cur = db.cursor()
+  cur.execute("select r.name from rules r")
+  info = cur.fetchall()
+  cur.close()
+  if not info:
+    return None
+  else:
+    return info

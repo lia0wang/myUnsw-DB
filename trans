@@ -77,8 +77,10 @@ try:
       pass
 
   uoc_sum, wam_sum, def_uoc_sum, wam_average= getUocAndWam(uoc_lst, def_uoc_lst, wam_lst)
-
-  print(f"UOC = {uoc_sum}, WAM = {wam_average}")
+  if def_uoc_sum == 0:
+    print(f"This student hasn't studied anything.") 
+  else:
+    print(f"UOC = {uoc_sum}, WAM = {wam_average}")
 
 except Exception as err:
   print("DB error: ", err)
