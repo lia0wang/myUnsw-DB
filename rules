@@ -28,6 +28,8 @@ elif len(code) == 6:
 
 try:
   db = psycopg2.connect("dbname=mymyunsw")
+
+  # PROGRAM
   if codeOf == "program":
     progInfo = getProgram(db,code)
     if not progInfo:
@@ -100,18 +102,7 @@ try:
         # General Education
         print(f"{pg_detail[i][-1]} UOC of {pg_detail[i][0]}")
 
-
-    '''
-    WM
-    AO Group       - requires minimum WAM; typically used as a pre-req; not used in this assignment
-    Min/Max        - min is minimum WAM
-    '''
-    '''
-    RQ, LR, MR 
-    AO Group       - not used in this assignment
-    Min/Max        - -
-    '''
-
+  # STREAM
   elif codeOf == "stream":
     strmInfo = getStream(db,code)
     if not strmInfo:
@@ -123,43 +114,6 @@ try:
     # print(strmInfo)
     # print(getOrgunitsStream(db, strmInfo[0]))
 
-    '''
-    DS 
-    AO Group       - enumerated list of stream codes 
-                   - # streams to complete
-    '''
-    '''
-    CC 
-    AO Group       - list of course codes (no patterns)
-    Min/Max        - not needed
-    '''
-    '''
-    PE
-    AO Group       - list of courses (enumerated or patterns)
-    Min/Max        - must complete UOC between min and max;
-                     (max = null) means "at least min UOC";
-                     min = null) means "up to max UOC"; cannot both be null
-    '''
-    '''
-    FE
-    AO Group       - don't need an AO group, but could have one with FREE#### as the pattern
-    Min/Max        - as for PE
-    '''
-    '''
-    GE
-    AO Group       - any course like GEN##### **
-    Min/Max        - typically min = max = 12
-    '''
-    '''
-    WM
-    AO Group       - requires minimum WAM; typically used as a pre-req; not used in this assignment
-    Min/Max        - min is minimum WAM
-    '''
-    '''
-    RQ, LR, MR 
-    AO Group       - not used in this assignment
-    Min/Max        - -
-    '''
     # First 3 lines
     print(f"{strmInfo[1]} {strmInfo[2]}")
     faculty = getOrgunitsStream(db, strmInfo[0])
